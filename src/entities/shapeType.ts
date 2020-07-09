@@ -1,0 +1,1 @@
+export type ShapeType = 'I' | 'L' | 'Bolt' | 'Podium' | 'Cube';
