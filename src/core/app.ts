@@ -81,6 +81,10 @@ export class App {
             this.TogglePause();
             return;
         }
+        else if(e.keyCode == 69){
+            this.TogglePause();
+            this.GameOver();
+        }
 
         if(this.gamePaused) return;
 
@@ -124,6 +128,8 @@ export class App {
     }
 
     private GameOver(){
+        clearInterval(this.updateInterval);
+
         this.gameInProgress = false;
         this.scoreManager.GameEnd();
 
