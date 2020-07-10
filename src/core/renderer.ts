@@ -3,14 +3,19 @@ import { Vector2 } from "../math/vector2";
 
 export class Renderer{
 
-    readonly rendererCanvas = document.getElementById("GameCanvas") as HTMLCanvasElement;
-    readonly rendererContext = this.rendererCanvas.getContext("2d") as CanvasRenderingContext2D;
+    readonly rendererCanvas: HTMLCanvasElement;
+    readonly rendererContext: CanvasRenderingContext2D;
 
-    constructor(){
+    constructor(
+        canvasId: string
+    ){
+        this.rendererCanvas = document.getElementById(canvasId) as HTMLCanvasElement;
+        this.rendererContext = this.rendererCanvas.getContext("2d") as CanvasRenderingContext2D;
     }
 
-    GetCanvasSize(): Vector2{
-        return new Vector2(this.rendererCanvas.width, this.rendererCanvas.height);
+    SetupRendererSize(canvasSize: Vector2){
+        this.rendererCanvas.width = canvasSize.x;
+        this.rendererCanvas.height = canvasSize.y;
     }
 
     RenderEntites(entites: Entity[]){

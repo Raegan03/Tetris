@@ -36,6 +36,10 @@ export class Shape{
         return this.position;
     }
 
+    SetPosition(position: Vector2){
+        this.position = position;
+    }
+
     MoveShape(move: Vector2){
         this.position.y += move.y;
         this.position.x += move.x;

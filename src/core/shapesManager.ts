@@ -9,9 +9,6 @@ import { Physic } from "../math/physic";
 
 export class ShapesManager{
 
-    readonly minMaxCanvasX = new Vector2(0, 400);
-    readonly minMaxCanvasY = new Vector2(0, 800);
-
     readonly blockSize = new Vector2(40, 40);
 
     readonly boardColumns = 10;
@@ -21,22 +18,48 @@ export class ShapesManager{
     private currentShape: Shape;
 
     private boardMatrix: Entity[][];
+
+    readonly scoreIncrease: (scoreChange: number) => void;
+    readonly nextSelected: (nextEntities: Entity[]) => void;
+    readonly gameOver: () => void;
     
-    constructor(){
+    constructor(
+        scoreIncrease: (scoreChange: number) => void,
+        nextSelected: (nextEntities: Entity[]) => void,
+        gameOver: () => void){
+
         this.boardMatrix = [];
-        for(let col = 0; col < 10; col++){
+        for(let col = 0; col < this.boardColumns; col++){
             this.boardMatrix[col] = [];
-            for(let row = 0; row < 20; row++){
+            for(let row = 0; row < this.boardRows; row++){
                 this.boardMatrix[col][row] = null;
             }
         }
+
+        this.scoreIncrease = scoreIncrease;
+        this.nextSelected = nextSelected;
+        this.gameOver = gameOver;
     }
 
     StartGenerating(){
         this.currentShape = new Shape(this.GetRandomPosition(), this.GetRandomShapeType());
         this.nextShape = new Shape(this.GetRandomPosition(), this.GetRandomShapeType());
 
+        this.DrawNextShape();
         this.DrawShapeOnBoard();
+    }
+
+    ClearManager(){
+        this.currentShape = null;
+        this.nextShape = null;
+
+        this.boardMatrix = [];
+        for(let col = 0; col < this.boardColumns; col++){
+            this.boardMatrix[col] = [];
+            for(let row = 0; row < this.boardRows; row++){
+                this.boardMatrix[col][row] = null;
+            }
+        }
     }
 
     GetEntities(): Entity[]{
@@ -86,8 +109,16 @@ export class ShapesManager{
     private PushNextShape(){
         this.CheckForScore();
 
+        if(this.currentShape.GetPosition().y <= 0)
+        {
+            this.gameOver();
+            return;
+        }
+
         this.currentShape = this.nextShape;
         this.nextShape = new Shape(this.GetRandomPosition(), this.GetRandomShapeType());
+
+        this.DrawNextShape();
     }
 
     private CheckForScore(){
@@ -126,6 +157,7 @@ export class ShapesManager{
             }
         }
 
+        this.scoreIncrease(100);
         this.CheckForScore();
     }
 
@@ -177,6 +209,27 @@ export class ShapesManager{
         }
     }
 
+    private DrawNextShape(){
+        const size = this.nextShape.GetSize();
+        const shape = this.nextShape.GetShape();
+
+        const fillColour = this.nextShape.GetFillColour();
+        const strokeColour = this.nextShape.GetStrokeColour();
+
+        let entities = [];
+
+        for(let col = 0; col < size.x; col++){
+            for(let row = 0; row < size.y; row++){
+                if(shape[col][row] == 0)
+                    continue;
+
+                    const position = new Vector2(col * this.blockSize.x, row * this.blockSize.y);
+                    entities.push(new Block(position, this.blockSize, fillColour, strokeColour));
+            }
+        }
+        this.nextSelected(entities);
+    }
+
     private CheckShapeMove(moveDirection: MoveDirection): boolean{
         switch(moveDirection){
             case 'Down':
@@ -199,7 +252,7 @@ export class ShapesManager{
     }
 
     private GetRandomPosition(): Vector2{
-        return new Vector2(MathHelper.RandomRange(3, 5), -3);
+        return new Vector2(MathHelper.RandomRange(0, 5), -3);
     }
 
     private GetRandomShapeType(): ShapeType{
