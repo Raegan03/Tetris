@@ -3,16 +3,19 @@ import { Vector2 } from "../math/vector2";
 
 export class Block extends Entity{
     constructor(
-        index: number,
         position: Vector2,
         private size: Vector2,
         private fillColour: string,
         private strokeColour: string
     ){
-        super(index, position);
+        super(position);
     }
 
-    UpdatePositon(positon: Vector2){
+    GetPosition(): Vector2{
+        return this.position;
+    }
+
+    SetPositon(positon: Vector2){
         this.position = positon;
     }
 

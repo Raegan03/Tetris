@@ -1,37 +1,74 @@
 import { Renderer } from "./renderer";
-import { Block } from "../entities/block";
-import { Vector2 } from "../math/vector2";
-import { Shape } from "../entities/shape";
+import { ShapesManager } from "./shapesManager";
+import { MoveDirection } from "./moveDirection";
 
 export class App {
 
     readonly renderer: Renderer;
+    readonly shapesManager: ShapesManager;
 
-    currentTime: number;
-    currentShape: Shape;
+    private updateInterval: NodeJS.Timeout;
 
     constructor() {
 
         this.renderer = new Renderer();
+        this.shapesManager = new ShapesManager();
+
+        window.addEventListener('keydown', (e) => this.KeysHandling(e));
 
         this.StartGame();
     }
 
     StartGame(){
-        window.requestAnimationFrame((t) => this.Update(t));
-        window.setInterval(() => this.LogicUpdate(), 1000);
-        this.currentShape = new Shape(0, new Vector2(0, 0), 'Bolt');
-    }
+        this.shapesManager.StartGenerating();
+        this.updateInterval = setInterval(() => this.LogicUpdate(), 1000);
 
-    Update(t: number){
-        this.renderer.ClearRenderer();
-
-        this.renderer.RenderEntites([this.currentShape]);
-        window.requestAnimationFrame((t) => this.Update(t));
+        this.RenderBlocks();
     }
 
     LogicUpdate(){
-        this.currentShape.DropPosition();
+        this.shapesManager.MoveShape('Down');
         console.log('Logic Update');
+
+        this.RenderBlocks();
+    }
+
+    private MoveCurrentShape(moveDirection: MoveDirection){
+        console.log("Direction " + moveDirection);
+
+        this.shapesManager.MoveShape(moveDirection);
+        this.RenderBlocks();
+
+        if(moveDirection == 'Down')
+            this.ResetInterval();
+    }
+
+    private KeysHandling(e: KeyboardEvent){
+        switch(e.keyCode){
+            case 82:
+                this.shapesManager.RotateShape();
+            case 40:
+            case 83:
+                this.MoveCurrentShape('Down');
+                break;
+            case 39:
+            case 68:
+                this.MoveCurrentShape('Right');
+                break;
+            case 37:
+            case 65:
+                this.MoveCurrentShape('Left');
+                break;
+        }
+    }
+
+    private ResetInterval(){
+        clearInterval(this.updateInterval);
+        this.updateInterval = setInterval(() => this.LogicUpdate(), 1000);
+    }
+
+    private RenderBlocks(){
+        this.renderer.ClearRenderer();
+        this.renderer.RenderEntites(this.shapesManager.GetEntities());
     }
 }

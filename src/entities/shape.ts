@@ -1,66 +1,61 @@
 import { Vector2 } from "../math/vector2";
-import { Entity } from "./entity";
 import { ShapeType } from "./shapeType";
-import { Block } from "./block";
-import { EmptyBlock } from "./emptyBlock";
 
-export class Shape extends Entity{
+export class Shape{
 
-    blocks: Entity[][];
+    private shapeBlocks: number[][];
+    private fillColour: string;
+    private strokeColour: string;
 
     constructor(
-        index: number,
-        position: Vector2,
+        private position: Vector2,
         private shapeType: ShapeType
     ){
-        super(index, position);
-
-        const shapeMatrix = this.GetShapeMatrix();
-        this.blocks = [];
-
-        let blockIndex = 0;
-        for(let i = 0; i < shapeMatrix.length; i++){
-            const shapeArray = shapeMatrix[i];
-
-            let array: Entity[] = [];
-            this.blocks.push(array);
-
-            for (let k = 0; k < shapeArray.length; k++){
-                const shapeValue = shapeArray[k];
-
-                const position = new Vector2(this.position.x + k * 40, this.position.y + i * 40);
-
-                if(shapeValue == 1){
-                    array.push(new Block(blockIndex, position, new Vector2(40, 40), "#000", "#FFF"));
-                }
-                else{
-                    array.push(new EmptyBlock(blockIndex, position));
-                }
-                blockIndex++;
-            }
-        }
+        this.shapeBlocks = this.GetShapeMatrix();
+        this.fillColour = this.SelectFillColour();
+        this.strokeColour = "#FFF";
     }
 
-    DropPosition(){
-        this.position.y += 40;
-
-        for(let i = 0; i < this.blocks.length; i++){
-            for (let k = 0; k < this.blocks[i].length; k++){
-                var block = this.blocks[i][k] as Block;
-                if(block instanceof Block){
-                    const position = new Vector2(this.position.x + k * 40, this.position.y + i * 40);
-                    block.UpdatePositon(position);
-                }
-            }
-        }
+    GetFillColour(): string{
+        return this.fillColour;
     }
 
-    DrawEntity(context: CanvasRenderingContext2D){
-        for(let i = 0; i < this.blocks.length; i++){
-            for (let k = 0; k < this.blocks[i].length; k++){
-                this.blocks[i][k].DrawEntity(context);
-            }
-        }
+    GetStrokeColour(): string{
+        return this.strokeColour;
+    }
+
+    GetShape(): number[][]{
+        return this.shapeBlocks;
+    }
+
+    GetSize(): Vector2{
+        return new Vector2(this.shapeBlocks.length, this.shapeBlocks.length);
+    }
+
+    GetPosition(): Vector2{
+        return this.position;
+    }
+
+    MoveShape(move: Vector2){
+        this.position.y += move.y;
+        this.position.x += move.x;
+    }
+
+    RotateShape(){
+        const n = this.shapeBlocks.length;
+        for (let x = 0; x < n / 2; x++) { 
+            for (let y = x; y < n - x - 1; y++) { 
+                let temp = this.shapeBlocks[x][y]; 
+  
+                this.shapeBlocks[x][y] = this.shapeBlocks[y][n-1-x]; 
+                this.shapeBlocks[y][n-1-x] = this.shapeBlocks[n - 1 - x][n - 1 - y]; 
+  
+                this.shapeBlocks[n - 1 - x][n - 1 - y] =
+                this.shapeBlocks[n - 1 - y][x]; 
+  
+                this.shapeBlocks[n - 1 - y][x] = temp; 
+            } 
+        } 
     }
 
     private GetShapeMatrix(): number[][]{
@@ -94,6 +89,21 @@ export class Shape extends Entity{
                     [1, 1],
                     [1, 1],
                 ];
+        }
+    }
+
+    private SelectFillColour(): string{
+        switch(this.shapeType){
+            case 'I':
+                return "#00CED1";
+            case 'L':
+                return "#D2691E";
+            case 'Bolt': 
+                return "#DC143C";
+            case 'Podium': 
+                return "#EE82EE";
+            case 'Cube':
+                return "#A0522D";
         }
     }
 }
